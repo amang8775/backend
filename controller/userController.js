@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const bcrypt = require('bcrypt')
+const bcrypt = require("bcrypt");
 
 const Users = require("../models/userModel");
 const Request = require("../models/requestModal");
@@ -139,15 +139,28 @@ const userController = {
       return res.status(500).json(error.message);
     }
   },
-  history : async(req , res)=>{
-      const user = await Users.findById(req.user.id).populate("requests donates").exec() ; 
-      const requestedBlood = user.requests ; 
-      const donatedBlood = user.donates ; 
-      res.status(200).send({
-        "requestArr" : requestedBlood , 
-        "donatesArr" : donatedBlood
-      }) ; 
-  }
+  history: async (req, res) => {
+    const user = await Users.findById(req.user.id)
+      .populate({
+        path: "requests",
+        populate: {
+          path: "donor_id",
+        },
+      })
+      .populate({
+        path: "donates",
+        populate: {
+          path: "user_id",
+        },
+      })
+      .exec();
+    const requestedBlood = user.requests;
+    const donatedBlood = user.donates;
+    res.status(200).send({
+      requestArr: requestedBlood,
+      donatesArr: donatedBlood,
+    });
+  },
 };
 
 const createAccessToken = (user) => {
